@@ -4,9 +4,10 @@ from app.views import *
 
 urlpatterns = [
     # access
-    path("login", login, name="login"),
+    path("login", login),
 
     # occurrence
-    path("add_occurrence", add_occurrence, name="add_occurrence"),
-    path("update_occurrence/<int:id>", update_occurrence, name="update_occurrence")
+    path("get_occurrence", OccurrencesAPIView.as_view()),
+    path("add_occurrence", add_occurrence),
+    path("update_occurrence/<int:id>", update_occurrence)
 ]
