@@ -1,41 +1,41 @@
-from django.contrib.auth import authenticate
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import generics
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_202_ACCEPTED, \
     HTTP_201_CREATED, HTTP_403_FORBIDDEN, HTTP_200_OK
+from rest_framework_gis.filters import DistanceToPointFilter
 
 from urban_management import queries
-from .serializers import LoginSerializer, UserSerializer
+from .serializers import OccurrenceSerializer
 
 
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def login(request):
-    user_serializer = LoginSerializer(data=request.data)
-    if not user_serializer.is_valid():
-        return Response(user_serializer.errors, status=HTTP_400_BAD_REQUEST)
+    state, message, data, token = queries.login(request.data)
 
-    user = authenticate(
-        username=user_serializer.data['username'],
-        password=user_serializer.data['password']
-    )
+    if state:
+        return Response({"data": data, "token": token}, status=HTTP_202_ACCEPTED)
 
-    if not user:
-        return Response({'detail': 'Invalid credentials'}, status=HTTP_404_NOT_FOUND)
+    return Response({'detail': message}, status=HTTP_404_NOT_FOUND)
 
-    token, _ = Token.objects.get_or_create(user=user)
-    user_serialized = UserSerializer(user)
 
-    return Response({"data": user_serialized.data, "token": token.key}, status=HTTP_202_ACCEPTED)
+@permission_classes((AllowAny,))
+class OccurrencesAPIView(generics.ListCreateAPIView):
+    queryset = queries.get_all_occurrences()
+    serializer_class = OccurrenceSerializer
+    filter_backends = (DistanceToPointFilter, DjangoFilterBackend)
+    distance_filter_field = 'point'
+    filterset_fields = ['author__user__username', 'category']
 
 
 @api_view(["POST"])
 def add_occurrence(request):
     try:
-        auth_token = request.META["HTTP_AUTHORIZATION"].split()[1]
-        user_id = Token.objects.get(key=auth_token).user_id
+        user_id = get_user_id_from_token(request)
         author = queries.get_author_by_id(user_id)
     except:
         return Response({'detail': 'Only authenticated authors can add occurrences'}, status=HTTP_403_FORBIDDEN)
@@ -43,19 +43,25 @@ def add_occurrence(request):
     state, message, occurrence = queries.add_occurrence(author, request.data)
     if state:
         return Response({"data": occurrence}, status=HTTP_201_CREATED)
-    else:
-        return Response({"detail": message}, status=HTTP_400_BAD_REQUEST)
+
+    return Response({"detail": message}, status=HTTP_400_BAD_REQUEST)
 
 
 @api_view(["PUT"])
 def update_occurrence(request, id):
-    auth_token = request.META["HTTP_AUTHORIZATION"].split()[1]
-    user_id = Token.objects.get(key=auth_token).user_id
+    user_id = get_user_id_from_token(request)
+
     if queries.get_user_by_id(user_id).is_superuser:
         state, message, occurrence = queries.update_occurrence(id, request.data)
         if state:
             return Response({"data": occurrence}, status=HTTP_200_OK)
-        else:
-            return Response({"detail": message}, status=HTTP_400_BAD_REQUEST)
-    else:
-        return Response({'detail': 'Only authenticated admins can update an occurrences'}, status=HTTP_403_FORBIDDEN)
+        return Response({"detail": message}, status=HTTP_400_BAD_REQUEST)
+
+    return Response({'detail': 'Only authenticated admins can update an occurrences'}, status=HTTP_403_FORBIDDEN)
+
+
+def get_user_id_from_token(request):
+    auth_token = request.META["HTTP_AUTHORIZATION"].split()[1]
+    user_id = Token.objects.get(key=auth_token).user_id
+
+    return user_id
