@@ -5,9 +5,9 @@ jobs:
       - image: circleci/python:3.7
 
       - image: circleci/postgres:alpine-postgis-ram
-          environment:
-            POSTGRES_USER: postgres
-            POSTGRES_DB: postgres
+        environment:
+          POSTGRES_USER: postgres
+          POSTGRES_DB: postgres
     steps:
       - checkout
       - restore_cache:
@@ -27,6 +27,8 @@ jobs:
           name: Running tests
           command: |
             . venv/bin/activate
+            python3 manage.py makemigrations app
+            python3 manage.py migrate
             python3 manage.py test
       - store_artifacts:
           path: test-reports/
