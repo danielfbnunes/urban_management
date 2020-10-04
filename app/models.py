@@ -9,17 +9,14 @@ class Author(models.Model):
 
 
 class Status(models.TextChoices):
-    TO_VALIDATE = 'TO_VALIDATE', _('to_validate')
-    VALIDATED = 'VALIDATED', _('validated')
-    SOLVED = 'SOLVED', _('solved')
+    TO_VALIDATE = 'to_validate', _('to_validate')
+    VALIDATED = 'validated', _('validated')
+    SOLVED = 'solved', _('solved')
 
 
 class Occurrence(models.Model):
     author = models.ForeignKey(Author, on_delete=models.CASCADE)
     point = gis_models.PointField(geography=True)
-    address = models.CharField(max_length=255)
-    city = models.CharField(max_length=100)
-    state = models.CharField(max_length=100)
     description = models.CharField(max_length=255)
     creation_date = models.DateTimeField(auto_now_add=True)
     modified_date = models.DateTimeField(auto_now=True)
