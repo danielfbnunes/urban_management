@@ -11,10 +11,10 @@ class UserSerializer(serializers.Serializer):
 class OccurrenceSerializer(GeoFeatureModelSerializer):
     author = serializers.SerializerMethodField("get_username")
     description = serializers.CharField(required=True)
-    creation_date = serializers.DateTimeField()
-    modified_date = serializers.DateTimeField()
-    status = serializers.ChoiceField(choices=Status.choices)
-    category = serializers.ChoiceField(choices=Category.choices)
+    creation_date = serializers.DateTimeField(required=True)
+    modified_date = serializers.DateTimeField(required=True)
+    status = serializers.ChoiceField(required=True, choices=Status.choices)
+    category = serializers.ChoiceField(required=True, choices=Category.choices)
 
     def get_username(self, obj):
         return obj.author.user.username
@@ -23,3 +23,32 @@ class OccurrenceSerializer(GeoFeatureModelSerializer):
         model = Occurrence
         geo_field = "point"
         fields = ('id', 'author', 'description', 'creation_date', 'modified_date', 'status', 'category')
+
+
+class LoginSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)
+
+
+class LoginResponseSerializer(serializers.Serializer):
+    data = UserSerializer()
+    token = serializers.CharField(required=True)
+
+
+class AddOccurrenceSerializer(serializers.Serializer):
+    description = serializers.CharField(required=True)
+    latitude = serializers.FloatField(required=True)
+    longitude = serializers.FloatField(required=True)
+    category = serializers.ChoiceField(required=True, choices=Category.choices)
+
+
+class UpdateOccurrenceSerializer(serializers.Serializer):
+    status = serializers.ChoiceField(required=True, choices=Status.choices)
+
+
+class OccurrenceResponseSerializer(serializers.Serializer):
+    data = OccurrenceSerializer()
+
+
+class ErrorResponseSerializer(serializers.Serializer):
+    detail = serializers.CharField(required=True)

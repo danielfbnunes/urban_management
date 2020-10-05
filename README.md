@@ -62,4 +62,5 @@ with the key `Authorization` followed by the value `Token <token key>`.
 | Author | YES    | POST    | add_occurrence/       | Body: `{"description":<string>, "latitude":<double>, "longitude":<double>, "category":<string>}`|
 | Admin  | YES    | PUT     | update_occurrence/:id | Body: `{"status":<string>}`                                                                     |
 
-**Note**: Description about the endpoints and the validation of fields can be found in the [Swagger documentation]().
+**Note**: Description about the endpoints and the validation of fields can be found in the 
+[Swagger documentation](http://localhost:8000/docs/).
