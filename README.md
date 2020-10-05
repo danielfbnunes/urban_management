@@ -39,19 +39,19 @@ docker-compose up test
 ```
 
 # Users
-When you start the project, an `admin` user will be already created with the following credentials:
+When you start the project, an admin user will be already created with the following credentials:
 
 Role    | Username | Password   |
 :-----: | :------: | :--------: |
 Admin   | admin    | admin12345 |
 
-With this credentials, you can access [Django Admin](http://localhost:8000/admin) 
+With these credentials, you can access [Django Admin](http://localhost:8000/admin) 
 
 # The API
 - [Here](https://www.getpostman.com/collections/fed832dd7554420136db) you can find a Postman collection with all the 
 available endpoints;
 - A `YES` on the `Token` column means that the a user with the `Role` specified must use the token provided when the
-user authenticates in the API, through the `login` endpoint. This token should be used in the Headers of the request
+user authenticates on the API, through the `login` endpoint. This token should be used in the headers of the request
 with the key `Authorization` followed by the value `Token <token key>`.
 - The base url for the requests is http://localhost:8000.
 
