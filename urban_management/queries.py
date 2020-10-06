@@ -43,13 +43,11 @@ def get_user_by_id(id):
     return User.objects.get(id=id)
 
 
+@transaction.atomic()
 def add_occurrence(author, data):
-    transaction.set_autocommit(False)
-
     add_occurrence_serializer = AddOccurrenceSerializer(data=data)
     if not add_occurrence_serializer.is_valid():
-        response = ErrorResponseSerializer({'detail': 'Invalid body'}).data
-        return False, response, None
+        raise Exception('Invalid body')
 
     description = add_occurrence_serializer.data["description"]
     latitude = add_occurrence_serializer.data["latitude"]
@@ -63,13 +61,9 @@ def add_occurrence(author, data):
         data = OccurrenceSerializer(occurrence).data
         response = {'data': data}
     except:
-        transaction.rollback()
-        response = ErrorResponseSerializer({'detail': 'Error creating occurrence'}).data
-        return False, response, None
+        raise Exception('Error creating occurrence')
 
-    transaction.commit()
-    transaction.set_autocommit(True)
-    return True, None, response
+    return response
 
 
 def update_occurrence(id, data):

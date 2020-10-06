@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core import management
 from django.test import TestCase
 
 from app.models import Author, Occurrence
@@ -7,6 +8,7 @@ from app.models import Author, Occurrence
 class AuthorModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        management.call_command('flush', interactive=False)
         user = User.objects.create(username='author')
         Author.objects.create(user=user)
 
@@ -18,6 +20,7 @@ class AuthorModelTest(TestCase):
 class OccurrenceModelTest(TestCase):
     @classmethod
     def setUpTestData(cls):
+        management.call_command('flush', interactive=False)
         user = User.objects.create(username='author')
         author = Author.objects.create(user=user)
         point = 'POINT(0 0)'

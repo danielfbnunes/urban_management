@@ -1,5 +1,5 @@
+from django.shortcuts import redirect
 from django.urls import path
-from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 
 from app.views import *
@@ -15,6 +15,8 @@ schema_view = get_schema_view(
     public=True)
 
 urlpatterns = [
+    path('', lambda request: redirect('docs/', permanent=True)),
+
     # access
     path("login", login),
 

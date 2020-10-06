@@ -56,7 +56,7 @@ with the key `Authorization` followed by the value `Token <token key>`.
 - The base url for the requests is http://localhost:8000.
 
 | Role   | Token  | Method  | Endpoint              | Body / Params                                                                                   |
-|:------:|:------:|:-------:|-----------------------|:-----------------------------------------------------------------------------------------------:|
+|:------:|:------:|:-------:|-----------------------|-------------------------------------------------------------------------------------------------|
 | Anyone | NO     | POST    | login/                | Body: `{"username":<string>, "password":<string>}`                                              |
 | Anyone | NO     | GET     | get_occurrence/       | Params: (`category`, `author__user__username`, `dist`, `point`)                                 |
 | Author | YES    | POST    | add_occurrence/       | Body: `{"description":<string>, "latitude":<double>, "longitude":<double>, "category":<string>}`|

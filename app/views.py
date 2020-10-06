@@ -6,7 +6,7 @@ from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_404_NOT_FOUND, HTTP_202_ACCEPTED, \
+from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_202_ACCEPTED, \
     HTTP_201_CREATED, HTTP_403_FORBIDDEN, HTTP_200_OK
 from rest_framework_gis.filters import DistanceToPointFilter
 
@@ -17,7 +17,7 @@ from .serializers import OccurrenceSerializer, LoginSerializer, LoginResponseSer
 
 @swagger_auto_schema(method="post", request_body=LoginSerializer,
                      responses={HTTP_202_ACCEPTED: openapi.Response('Login successful', LoginResponseSerializer),
-                                HTTP_404_NOT_FOUND: openapi.Response('Login rejected', ErrorResponseSerializer)})
+                                HTTP_400_BAD_REQUEST: openapi.Response('Login rejected', ErrorResponseSerializer)})
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def login(request):
@@ -26,7 +26,7 @@ def login(request):
     if state:
         return Response(data, status=HTTP_202_ACCEPTED)
 
-    return Response(error, status=HTTP_404_NOT_FOUND)
+    return Response(error, status=HTTP_400_BAD_REQUEST)
 
 
 @permission_classes((AllowAny,))
@@ -54,11 +54,12 @@ def add_occurrence(request):
         error = ErrorResponseSerializer({'detail': 'Only authenticated authors can add occurrences'}).data
         return Response(error, status=HTTP_403_FORBIDDEN)
 
-    state, error, data = queries.add_occurrence(author, request.data)
-    if state:
+    try:
+        data = queries.add_occurrence(author, request.data)
         return Response(data, status=HTTP_201_CREATED)
-
-    return Response(error, status=HTTP_400_BAD_REQUEST)
+    except Exception as e:
+        error = ErrorResponseSerializer({'detail': str(e)}).data
+        return Response(error, status=HTTP_400_BAD_REQUEST)
 
 
 @swagger_auto_schema(method="put", request_body=UpdateOccurrenceSerializer,
