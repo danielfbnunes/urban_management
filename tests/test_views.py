@@ -205,3 +205,69 @@ class AddOccurrenceViewTest(TestCase):
         self.assertEquals(body['properties']['status'], 'to_validate')
         self.assertEquals(body['properties']['category'], 'construction')
         self.assertEquals(body['geometry']['coordinates'], [0.0, 0.0])
+
+
+class UpdateOccurrenceViewTest(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        management.call_command('flush', interactive=False)
+        user = User.objects.create_user(username="user", password="password")
+        User.objects.create_user(username="admin", password="password", is_superuser=True)
+        author = Author.objects.create(user=user)
+        point = 'POINT(0 0)'
+        description = 'description'
+        category = 'construction'
+        Occurrence.objects.create(author=author, point=point, description=description, category=category)
+
+    def test_token_authentication(self):
+        # token needed for the request
+        response = self.client.put('/update_occurrence/1')
+        self.assertEquals(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_author_authentication(self):
+        # user is not an admin - should be forbidden
+        token = Token.objects.create(user_id=1)
+        response = self.client.put('/update_occurrence/1', HTTP_AUTHORIZATION=f'Token {token}')
+        body = dict(response.json())
+
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(body['detail'], 'Only authenticated admins can update an occurrences')
+
+    def test_invalid_body(self):
+        token = Token.objects.create(user_id=2)
+        response = self.client.put('/update_occurrence/1', data={}, content_type="application/json",
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        body = dict(response.json())
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(body['detail'], 'Invalid body')
+
+        # invalid status
+        response = self.client.put('/update_occurrence/1', data={'status': 'invalid_status'},
+                                   content_type="application/json",
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        body = dict(response.json())
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(body['detail'], 'Invalid body')
+
+    def test_nonexistent_occurrence(self):
+        token = Token.objects.create(user_id=2)
+        response = self.client.put('/update_occurrence/2', data={'status': 'validated'},
+                                   content_type="application/json",
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+
+        body = dict(response.json())
+
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(body['detail'], 'Occurrence with id 2 doesnt exist')
+
+    def test_valid_request(self):
+        token = Token.objects.create(user_id=2)
+        response = self.client.put('/update_occurrence/1', data={'status': 'validated'},
+                                   content_type="application/json",
+                                   HTTP_AUTHORIZATION=f'Token {token}')
+        body = dict(response.json())['data']
+
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(body['properties']['status'], 'validated')

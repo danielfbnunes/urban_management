@@ -66,22 +66,18 @@ def add_occurrence(author, data):
     return response
 
 
+@transaction.atomic()
 def update_occurrence(id, data):
-    transaction.set_autocommit(False)
-
     update_occurrence_serializer = UpdateOccurrenceSerializer(data=data)
     if not update_occurrence_serializer.is_valid():
-        response = ErrorResponseSerializer({'detail': 'Invalid body'}).data
-        return False, response, None
+        raise Exception('Invalid body')
 
     status = update_occurrence_serializer.data["status"]
 
     occurrence = Occurrence.objects.filter(id=id)
 
     if not occurrence.exists():
-        transaction.rollback()
-        response = ErrorResponseSerializer({'detail': f"Occurrence with id {id} doesnt exist"}).data
-        return False, response, None
+        raise Exception(f"Occurrence with id {id} doesnt exist")
 
     try:
         occurrence.update(status=status)
@@ -91,10 +87,6 @@ def update_occurrence(id, data):
         data = OccurrenceSerializer(occurrence_updated).data
         response = {'data': data}
     except:
-        transaction.rollback()
-        response = ErrorResponseSerializer({'detail': 'Error updating occurrence'}).data
-        return False, response, None
+        raise Exception('Error updating occurrence')
 
-    transaction.commit()
-    transaction.set_autocommit(True)
-    return True, None, response
+    return response

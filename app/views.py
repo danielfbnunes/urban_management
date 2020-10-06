@@ -74,10 +74,12 @@ def update_occurrence(request, id):
     user_id = get_user_id_from_token(request)
 
     if queries.get_user_by_id(user_id).is_superuser:
-        state, error, data = queries.update_occurrence(id, request.data)
-        if state:
+        try:
+            data = queries.update_occurrence(id, request.data)
             return Response(data, status=HTTP_200_OK)
-        return Response(error, status=HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            error = ErrorResponseSerializer({'detail': str(e)}).data
+            return Response(error, status=HTTP_400_BAD_REQUEST)
 
     error = ErrorResponseSerializer({'detail': 'Only authenticated admins can update an occurrences'}).data
     return Response(error, status=HTTP_403_FORBIDDEN)
