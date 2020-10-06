@@ -1,31 +1,34 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
-from django.core.exceptions import ValidationError
 from django.db import transaction
 from rest_framework.authtoken.models import Token
 
 from app.models import Author
 from app.models import Occurrence
-from app.serializers import OccurrenceSerializer, UserSerializer
+from app.serializers import OccurrenceSerializer, UserSerializer, LoginSerializer, ErrorResponseSerializer, \
+    LoginResponseSerializer, AddOccurrenceSerializer, UpdateOccurrenceSerializer
 
 
 def login(data):
-    username = data.get('username')
-    password = data.get('password')
+    login_serializer = LoginSerializer(data=data)
+    if not login_serializer.is_valid():
+        response = ErrorResponseSerializer({'detail': 'Invalid body'}).data
+        return False, response, None
 
     user = authenticate(
-        username=username,
-        password=password
+        username=login_serializer.data["username"],
+        password=login_serializer.data["password"]
     )
 
     if not user:
-        error_message = 'Invalid credentials'
-        return False, error_message, None, None
+        response = ErrorResponseSerializer({'detail': 'Invalid credentials'}).data
+        return False, response, None
 
     token, _ = Token.objects.get_or_create(user=user)
     data = UserSerializer(user).data
 
-    return True, None, data, token.key
+    response = LoginResponseSerializer({'data': data, 'token': token}).data
+    return True, None, response
 
 
 def get_all_occurrences():
@@ -40,62 +43,50 @@ def get_user_by_id(id):
     return User.objects.get(id=id)
 
 
+@transaction.atomic()
 def add_occurrence(author, data):
-    transaction.set_autocommit(False)
+    add_occurrence_serializer = AddOccurrenceSerializer(data=data)
+    if not add_occurrence_serializer.is_valid():
+        raise Exception('Invalid body')
 
-    description = data.get("description")
-    latitude = data.get("latitude")
-    longitude = data.get("longitude")
-    category = data.get("category")
+    description = add_occurrence_serializer.data["description"]
+    latitude = add_occurrence_serializer.data["latitude"]
+    longitude = add_occurrence_serializer.data["longitude"]
+    category = add_occurrence_serializer.data["category"]
 
     try:
         occurrence = Occurrence.objects.create(author=author, description=description,
                                                point=f"POINT({latitude} {longitude})", category=category)
 
-        # Validate if the category is a valid choice
-        occurrence.full_clean()
-
         data = OccurrenceSerializer(occurrence).data
-    except ValidationError:
-        transaction.rollback()
-        error_message = "Error creating occurrence: invalid category"
-        return False, error_message, None
+        response = {'data': data}
     except:
-        transaction.rollback()
-        error_message = "Error creating occurrence"
-        return False, error_message, None
+        raise Exception('Error creating occurrence')
 
-    transaction.commit()
-    transaction.set_autocommit(True)
-    return True, None, data
+    return response
 
 
+@transaction.atomic()
 def update_occurrence(id, data):
-    transaction.set_autocommit(False)
+    update_occurrence_serializer = UpdateOccurrenceSerializer(data=data)
+    if not update_occurrence_serializer.is_valid():
+        raise Exception('Invalid body')
 
-    status = data.get("status")
+    status = update_occurrence_serializer.data["status"]
 
     occurrence = Occurrence.objects.filter(id=id)
 
     if not occurrence.exists():
-        transaction.rollback()
-        error_message = f"Occurrence with id {id} doesnt exist"
-        return False, error_message, None
+        raise Exception(f"Occurrence with id {id} doesnt exist")
 
     try:
         occurrence.update(status=status)
 
-        # Validate if the updated status is a valid choice
-        Occurrence.objects.get(id=id).full_clean()
-
         occurrence_updated = Occurrence.objects.get(id=id)
         occurrence_updated.save()
         data = OccurrenceSerializer(occurrence_updated).data
+        response = {'data': data}
     except:
-        transaction.rollback()
-        error_message = "Error updating occurrence: invalid status"
-        return False, error_message, None
+        raise Exception('Error updating occurrence')
 
-    transaction.commit()
-    transaction.set_autocommit(True)
-    return True, None, data
+    return response
