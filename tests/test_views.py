@@ -6,6 +6,10 @@ from rest_framework.authtoken.models import Token
 
 from app.models import Author, Occurrence
 
+"""
+All setUpTestData methods flush the database since we are using an external database for testing.
+"""
+
 
 class LoginViewTest(TestCase):
     @classmethod
@@ -28,7 +32,7 @@ class LoginViewTest(TestCase):
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(body['detail'], 'Invalid body')
 
-    def test_invalid_body(self):
+    def test_invalid_credentials(self):
         response = self.client.post('/login', data={'username': 'user', 'password': 'wrong_password'})
         body = dict(response.json())
 
@@ -57,8 +61,9 @@ class GetOccurrenceViewTest(TestCase):
         # Id -> 3 [Author: user2; Point: 1,0; Category: construction]
         Occurrence.objects.create(author=author2, point=point2, description=description, category=category)
 
-    def get_ids_from_list(self, list):
-        return [dict(element)['id'] for element in list]
+    # get id field from list of JSON objects
+    def get_ids_from_list_of_json(self, list_of_json):
+        return [dict(element)['id'] for element in list_of_json]
 
     def get_list_of_features_from_json_response(self, response):
         return list(dict(response.json())['features'])

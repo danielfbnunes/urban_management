@@ -21,6 +21,12 @@ from .serializers import OccurrenceSerializer, LoginSerializer, LoginResponseSer
 @api_view(["POST"])
 @permission_classes((AllowAny,))
 def login(request):
+    """
+    Login in the API.
+    :param request: Credentials to the login.
+    :return: Response 202 and JSON with the username and token, if the login was accepted.
+             Response 400 if the credentials are wrong or if the request body doesnt follow the guidelines.
+    """
     state, error, data = queries.login(request.data)
 
     if state:
@@ -31,6 +37,9 @@ def login(request):
 
 @permission_classes((AllowAny,))
 class OccurrencesAPIView(generics.ListCreateAPIView):
+    """
+    Filter occurrences based on the category, author and location range.
+    """
     queryset = queries.get_all_occurrences()
     serializer_class = OccurrenceSerializer
     filter_backends = (DistanceToPointFilter, DjangoFilterBackend)
@@ -47,8 +56,17 @@ class OccurrencesAPIView(generics.ListCreateAPIView):
                                                               ErrorResponseSerializer)})
 @api_view(["POST"])
 def add_occurrence(request):
+    """
+    Create a new occurrence. NOTE: the authenticated user must be an author.
+    :param request: Data related to the occurrence that will be created.
+    :return: Response 201 with the created occurrence.
+             Response 403 if the authenticated user is not an author.
+             Response 400 if the request body doesnt follow the guidelines or if there was any error creating the
+             occurrence.
+    """
     try:
         user_id = get_user_id_from_token(request)
+        # the authenticated user must be an author
         author = queries.get_author_by_id(user_id)
     except:
         error = ErrorResponseSerializer({'detail': 'Only authenticated authors can add occurrences'}).data
@@ -71,6 +89,15 @@ def add_occurrence(request):
                                                               ErrorResponseSerializer)})
 @api_view(["PUT"])
 def update_occurrence(request, id):
+    """
+    Update an occurrence. NOTE: the authenticated user must be an admin.
+    :param request: Data with the new status for the occurrence.
+    :param id: Id of the occurrence to update.
+    :return: Response 200 and the updated occurrence if everything went fine.
+             Response 403 if the authenticated user is not an admin.
+             Response 400 if the request body doesnt follow the guidelines, if there was any error updating the
+             occurrence or if there isn't any occurrence with the id passed.
+    """
     user_id = get_user_id_from_token(request)
 
     if queries.get_user_by_id(user_id).is_superuser:

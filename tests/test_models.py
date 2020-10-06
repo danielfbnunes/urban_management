@@ -4,6 +4,10 @@ from django.test import TestCase
 
 from app.models import Author, Occurrence
 
+"""
+All setUpTestData methods flush the database since we are using an external database for testing.
+"""
+
 
 class AuthorModelTest(TestCase):
     @classmethod

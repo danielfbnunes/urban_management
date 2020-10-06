@@ -15,6 +15,7 @@ schema_view = get_schema_view(
     public=True)
 
 urlpatterns = [
+    # redirect to swagger docs
     path('', lambda request: redirect('docs/', permanent=True)),
 
     # access
@@ -25,5 +26,6 @@ urlpatterns = [
     path("add_occurrence", add_occurrence),
     path("update_occurrence/<int:id>", update_occurrence),
 
+    # swagger docs
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0))
 ]
