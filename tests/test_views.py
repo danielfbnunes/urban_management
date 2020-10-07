@@ -74,7 +74,7 @@ class GetOccurrenceViewTest(TestCase):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 3)
-        self.assertCountEqual(self.get_ids_from_list(body), [1, 2, 3])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1, 2, 3])
 
     def test_get_all_occurrences_by_category(self):
         response = self.client.get('/get_occurrence?category=construction')
@@ -82,14 +82,14 @@ class GetOccurrenceViewTest(TestCase):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 2)
-        self.assertCountEqual(self.get_ids_from_list(body), [1, 3])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1, 3])
 
         response = self.client.get('/get_occurrence?category=incident')
         body = self.get_list_of_features_from_json_response(response)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 1)
-        self.assertCountEqual(self.get_ids_from_list(body), [2])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [2])
 
         response = self.client.get('/get_occurrence?category=special_event')
         body = self.get_list_of_features_from_json_response(response)
@@ -108,14 +108,14 @@ class GetOccurrenceViewTest(TestCase):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 1)
-        self.assertCountEqual(self.get_ids_from_list(body), [1])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1])
 
         response = self.client.get('/get_occurrence?author__user__username=user2')
         body = self.get_list_of_features_from_json_response(response)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 2)
-        self.assertCountEqual(self.get_ids_from_list(body), [2, 3])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [2, 3])
 
         response = self.client.get('/get_occurrence?author__user__username=user3')
         body = self.get_list_of_features_from_json_response(response)
@@ -138,21 +138,21 @@ class GetOccurrenceViewTest(TestCase):
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 2)
-        self.assertCountEqual(self.get_ids_from_list(body), [1, 2])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1, 2])
 
         response = self.client.get('/get_occurrence?dist=100600&point=0.1,0.1')
         body = self.get_list_of_features_from_json_response(response)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 2)
-        self.assertCountEqual(self.get_ids_from_list(body), [1, 2])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1, 2])
 
         response = self.client.get('/get_occurrence?dist=100800&point=0.1,0.1')
         body = self.get_list_of_features_from_json_response(response)
 
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(body), 3)
-        self.assertCountEqual(self.get_ids_from_list(body), [1, 2, 3])
+        self.assertCountEqual(self.get_ids_from_list_of_json(body), [1, 2, 3])
 
 
 class AddOccurrenceViewTest(TestCase):
