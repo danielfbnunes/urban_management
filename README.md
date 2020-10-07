@@ -64,3 +64,14 @@ with the key `Authorization` followed by the value `Token <token key>`.
 
 **Note**: Description about the endpoints and the validation of fields can be found in the 
 [Swagger documentation](http://localhost:8000/docs/).
+
+# Testing
+
+The project is currently integrated with [Circle CI](https://circleci.com/), which allows be to run the tests in an 
+automated pipeline for each commit.
+
+# Some notes
+- It was my first time using Circle CI and I can say that the integration was quite easy and that the tool has some
+pretty nice features, specially for a free solution;
+- Django rest framework version is the **3.11.2** since the latest versions were having some unresolved conflicts with
+the swagger documentation ([more info](https://github.com/encode/django-rest-framework/issues/7555))
