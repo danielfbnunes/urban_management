@@ -66,15 +66,15 @@ with the key `Authorization` followed by the value `Token <token key>`.
 [Swagger documentation](http://localhost:8000/docs/).
 
 # Use case
-1 - Start the project ([info](#start-project));
-2 - Login in django admin and create an author;
-3 - Authenticate with the credentials created for the author in the `/login` endpoint;
-4 - Use the token provided on step 3 to create an occurrence (`/add_occurrence`);
-5 - Verify if the occurrence was created in the `/get_occurrence` endpoint;
-6 - Authenticate with the credentials for the admin user ([info](#users)) in the `/login` endpoint;
-7 - Update the occurrence created using the occurrence id in the `update_occurrence/:id` endpoint (the id can be found
+1. Start the project ([info](#start-project));
+2. Login in django admin and create an author;
+3. Authenticate with the credentials created for the author in the `/login` endpoint;
+4. Use the token provided on step 3 to create an occurrence (`/add_occurrence`);
+5. Verify if the occurrence was created in the `/get_occurrence` endpoint;
+6. Authenticate with the credentials for the admin user ([info](#users)) in the `/login` endpoint;
+7. Update the occurrence created using the occurrence id in the `update_occurrence/:id` endpoint (the id can be found
 on step 3)
-8 - Verify if the occurrence was updated in the `/get_occurrence` endpoint;
+8. Verify if the occurrence was updated in the `/get_occurrence` endpoint;
 
 # Testing
 
